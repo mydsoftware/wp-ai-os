@@ -1,27 +1,13 @@
-.wp-ai-os-score-card {
-	background: #fff;
-	border: 1px solid #dcdcde;
-	border-radius: 8px;
-	padding: 30px;
-	margin: 20px 0;
-	max-width: 500px;
-}
-
-.wp-ai-os-score {
-	font-size: 64px;
-	font-weight: 700;
-	line-height: 1.1;
-}
-
-.wp-ai-os-score span {
-	font-size: 24px;
-	font-weight: 400;
-}
-
-.wp-ai-os-checks {
-	margin-top: 30px;
-}
-
-.wp-ai-os-checks table {
-	margin-top: 15px;
-}
+.wp-ai-os-dashboard { max-width: 1400px; }
+.wp-ai-os-toolbar { display: flex; gap: 8px; align-items: center; margin: 20px 0; }
+.wp-ai-os-toolbar #wp-ai-os-scan-status { font-weight: 600; }
+.wp-ai-os-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 20px 0; }
+.wp-ai-os-score-card, .wp-ai-os-info-card { background: #fff; border: 1px solid #dcdcde; border-radius: 10px; padding: 24px; box-sizing: border-box; }
+.wp-ai-os-score-card { min-height: 210px; }
+.wp-ai-os-info-card { min-height: 210px; }
+.wp-ai-os-score { font-size: 64px; font-weight: 700; line-height: 1.1; margin: 12px 0; }
+.wp-ai-os-score span { font-size: 24px; font-weight: 400; }
+.wp-ai-os-checks { margin-top: 30px; }
+.wp-ai-os-checks table { margin-top: 15px; }
+.wp-ai-os-info-card a { word-break: break-word; }
+@media (max-width: 900px) { .wp-ai-os-cards { grid-template-columns: 1fr; } }
