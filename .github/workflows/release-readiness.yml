@@ -1,0 +1,90 @@
+name: آمادگی انتشار
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-readiness:
+    name: بررسی آمادگی انتشار
+    runs-on: ubuntu-latest
+    steps:
+      - name: دریافت کد
+        uses: actions/checkout@v4
+
+      - name: بررسی ساختار افزونه
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f wp-ai-os.php
+          test -f readme.txt
+          test -f uninstall.php
+          test -d includes
+          test -d admin
+          test -d api
+          echo 'ساختار اصلی افزونه معتبر است.'
+
+      - name: بررسی فایل‌های اجباری وردپرس
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q '^Plugin Name:' wp-ai-os.php
+          grep -q '^Version:' wp-ai-os.php
+          grep -q '^Requires at least:' wp-ai-os.php
+          grep -q '^Requires PHP:' wp-ai-os.php
+          grep -q '^Stable tag:' readme.txt
+          echo 'اطلاعات انتشار کامل است.'
+
+      - name: بررسی فایل‌های حساس و توسعه‌ای
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git ls-files | grep -E '(^|/)(\.env|.*\.pem|.*\.key)$'; then
+            echo 'فایل حساس در بسته انتشار وجود دارد.'
+            exit 1
+          fi
+          if git ls-files | grep -E '(^|/)(node_modules|vendor)/'; then
+            echo 'وابستگی توسعه‌ای نباید وارد بسته اصلی شود.'
+            exit 1
+          fi
+
+      - name: بررسی نحو PHP
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            php -l "$file" >/dev/null
+          done < <(find . -type f -name '*.php' -not -path './.git/*' -print0)
+          echo 'نحو PHP معتبر است.'
+
+      - name: ساخت بسته انتشار
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf build
+          mkdir -p build/wp-ai-os
+          rsync -a --exclude='.git' --exclude='.github' --exclude='build' --exclude='node_modules' --exclude='vendor' ./ build/wp-ai-os/
+          test -f build/wp-ai-os/wp-ai-os.php
+          test -f build/wp-ai-os/readme.txt
+          cd build
+          zip -qr wp-ai-os.zip wp-ai-os
+          unzip -t wp-ai-os.zip
+          test -s wp-ai-os.zip
+          echo 'بسته انتشار با موفقیت ساخته و اعتبارسنجی شد.'
+
+      - name: انتشار نتیجه به‌عنوان Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: بسته-انتشار-wp-ai-os
+          path: build/wp-ai-os.zip
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: نتیجه نهایی
+        run: echo 'بررسی آمادگی انتشار با موفقیت انجام شد.'
