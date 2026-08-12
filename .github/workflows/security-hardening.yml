@@ -1,0 +1,85 @@
+name: بررسی امنیت و کیفیت
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  security:
+    name: بررسی امنیت و کیفیت کد
+    runs-on: ubuntu-latest
+    steps:
+      - name: دریافت کد
+        uses: actions/checkout@v4
+
+      - name: نصب PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: بررسی نحو تمام فایل‌های PHP
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            php -l "$file" >/dev/null
+          done < <(find . -type f -name '*.php' \
+            -not -path './.git/*' \
+            -not -path './vendor/*' -print0)
+
+      - name: بررسی اطلاعات نسخه افزونه
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q '^ \* Version: 1\.0\.0$' wp-ai-os.php
+          grep -q "define( 'WP_AI_OS_VERSION', '1\.0\.0' )" wp-ai-os.php
+
+      - name: جلوگیری از ورود فایل‌های حساس به مخزن
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git ls-files | grep -E '(^|/)(\.env|.*\.pem|.*\.key)$'; then
+            echo 'فایل حساس در مخزن پیدا شد.'
+            exit 1
+          fi
+
+      - name: بررسی الگوهای خطرناک در کد PHP
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RInE --include='*.php' \
+            'eval[[:space:]]*\(|base64_decode[[:space:]]*\([^)]*\$|shell_exec[[:space:]]*\(|passthru[[:space:]]*\(|proc_open[[:space:]]*\(' \
+            --exclude-dir=.git --exclude-dir=vendor .; then
+            echo 'الگوی پرریسک پیدا شد؛ نیاز به بررسی دارد.'
+            exit 1
+          fi
+
+      - name: بررسی مجوزهای REST حساس
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RIn --include='*.php' 'register_rest_route' . --exclude-dir=.git --exclude-dir=vendor | grep -v "permission_callback"; then
+            echo 'یک مسیر REST بدون permission_callback پیدا شد.'
+            exit 1
+          fi
+
+      - name: بررسی خروجی دیباگ و اسرار احتمالی
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RInE --include='*.php' --include='*.js' \
+            '(api[_-]?key[[:space:]]*=[[:space:]]*["'"'][A-Za-z0-9_-]{16,}|sk-[A-Za-z0-9]{16,}|password[[:space:]]*=[[:space:]]*["'"'][^"'"']{8,})' \
+            --exclude-dir=.git --exclude-dir=vendor .; then
+            echo 'مقدار مشکوک به کلید یا گذرواژه در کد پیدا شد.'
+            exit 1
+          fi
+
+      - name: نتیجه نهایی
+        run: echo 'بررسی امنیت و کیفیت با موفقیت انجام شد.'
