@@ -1,0 +1,38 @@
+name: Build Plugin Package
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build package
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist/wp-ai-os
+          rsync -a ./ dist/wp-ai-os/ \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='tests' \
+            --exclude='docs' \
+            --exclude='sprint*.sh' \
+            --exclude='dist'
+          rm -f dist/wp-ai-os/.env.example
+          (cd dist && zip -qr wp-ai-os.zip wp-ai-os)
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wp-ai-os-${{ github.ref_name }}
+          path: dist/wp-ai-os.zip
