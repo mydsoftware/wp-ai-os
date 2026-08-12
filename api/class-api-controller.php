@@ -59,6 +59,9 @@ class WP_AI_OS_API_Controller {
 		if ( ! is_array( $settings ) ) {
 			return new WP_REST_Response( array( 'code' => 'invalid_settings' ), 400 );
 		}
+		if ( isset( $settings['ai_api_key'] ) && '********' === $settings['ai_api_key'] ) {
+			unset( $settings['ai_api_key'] );
+		}
 		WP_AI_OS_Settings::update( $settings );
 		return $this->settings_get();
 	}
