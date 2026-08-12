@@ -3,7 +3,7 @@
  * Plugin Name: WP AI OS
  * Plugin URI: https://example.com/
  * Description: AI Readiness, GEO, AEO, RAG, Agents, WooCommerce and AI infrastructure for WordPress.
- * Version: 0.8.0
+ * Version: 0.9.0
  * Author: WP AI OS
  * Text Domain: wp-ai-os
  * Domain Path: /languages
@@ -15,7 +15,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'WP_AI_OS_VERSION', '0.8.0' );
+define( 'WP_AI_OS_VERSION', '0.9.0' );
 define( 'WP_AI_OS_FILE', __FILE__ );
 define( 'WP_AI_OS_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WP_AI_OS_URL', plugin_dir_url( __FILE__ ) );
@@ -24,6 +24,7 @@ require_once WP_AI_OS_PATH . 'admin/class-admin.php';
 require_once WP_AI_OS_PATH . 'api/class-api-controller.php';
 require_once WP_AI_OS_PATH . 'core/class-public-ai-files.php';
 require_once WP_AI_OS_PATH . 'core/class-schema-engine.php';
+require_once WP_AI_OS_PATH . 'core/class-license-manager.php';
 require_once WP_AI_OS_PATH . 'database/class-schema.php';
 require_once WP_AI_OS_PATH . 'ai/agents/class-agent-scheduler.php';
 require_once WP_AI_OS_PATH . 'integrations/woocommerce/class-woocommerce.php';
