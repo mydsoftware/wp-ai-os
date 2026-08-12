@@ -12,7 +12,7 @@ permissions:
 jobs:
   wordpress-integration:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -22,58 +22,61 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
 
       - name: Install test environment
-        run: npm ci
+        run: npm install --no-audit --no-fund
 
       - name: Start WordPress
-        run: npx wp-env start
+        run: npx @wordpress/env start
 
       - name: Install WooCommerce
-        run: npx wp-env run cli wp plugin install woocommerce --activate
+        run: npx @wordpress/env run cli wp plugin install woocommerce --activate
 
       - name: Install Elementor
-        run: npx wp-env run cli wp plugin install elementor --activate
+        run: npx @wordpress/env run cli wp plugin install elementor --activate
 
       - name: Verify WordPress
-        run: npx wp-env run cli wp core version
+        run: npx @wordpress/env run cli wp core version
 
       - name: Verify plugin is installed
-        run: npx wp-env run cli wp plugin status wp-ai-os
+        run: npx @wordpress/env run cli wp plugin status wp-ai-os
 
       - name: Activate WP AI OS
-        run: npx wp-env run cli wp plugin activate wp-ai-os
+        run: npx @wordpress/env run cli wp plugin activate wp-ai-os
 
       - name: Check active plugins
-        run: npx wp-env run cli wp plugin list --status=active --format=table
+        run: npx @wordpress/env run cli wp plugin list --status=active --format=table
 
       - name: Verify plugin version
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="$(npx wp-env run cli wp plugin get wp-ai-os --field=version | tr -d '\r')"
+          VERSION="$(npx @wordpress/env run cli wp plugin get wp-ai-os --field=version | tr -d '\r')"
           echo "WP AI OS version: ${VERSION}"
           test "${VERSION}" = "1.0.0"
 
       - name: Smoke test REST API
+        shell: bash
         run: |
           set -euo pipefail
-          npx wp-env run cli wp eval 'echo rest_url();'
-          npx wp-env run cli wp eval 'echo wp_json_encode( rest_get_server()->get_routes() );' > /tmp/routes.json
+          npx @wordpress/env run cli wp eval 'echo rest_url();'
+          npx @wordpress/env run cli wp eval 'echo wp_json_encode( rest_get_server()->get_routes() );' > /tmp/routes.json
           grep -q 'wp-ai-os' /tmp/routes.json
 
       - name: Verify WooCommerce
-        run: npx wp-env run cli wp plugin is-active woocommerce
+        run: npx @wordpress/env run cli wp plugin is-active woocommerce
 
       - name: Verify Elementor
-        run: npx wp-env run cli wp plugin is-active elementor
+        run: npx @wordpress/env run cli wp plugin is-active elementor
 
-      - name: Verify plugin uninstall safety
+      - name: Verify plugin lifecycle
+        shell: bash
         run: |
-          npx wp-env run cli wp plugin deactivate wp-ai-os
-          npx wp-env run cli wp plugin activate wp-ai-os
+          set -euo pipefail
+          npx @wordpress/env run cli wp plugin deactivate wp-ai-os
+          npx @wordpress/env run cli wp plugin activate wp-ai-os
+          npx @wordpress/env run cli wp plugin is-active wp-ai-os
 
       - name: Stop WordPress
         if: always()
-        run: npx wp-env stop
+        run: npx @wordpress/env stop
