@@ -11,6 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once WP_AI_OS_PATH . 'includes/class-settings.php';
 require_once WP_AI_OS_PATH . 'ai/providers/class-openai-compatible-provider.php';
+require_once WP_AI_OS_PATH . 'ai/optimization/class-content-analyzer.php';
 
 class WP_AI_OS_API_Controller {
 
@@ -28,6 +29,7 @@ class WP_AI_OS_API_Controller {
 			array( 'methods' => WP_REST_Server::EDITABLE, 'callback' => array( $this, 'settings_update' ), 'permission_callback' => array( $this, 'permissions' ), 'args' => array( 'settings' => array( 'required' => true, 'type' => 'object' ) ) ),
 		) );
 		register_rest_route( self::NAMESPACE, '/ai/test', array( 'methods' => WP_REST_Server::CREATABLE, 'callback' => array( $this, 'ai_test' ), 'permission_callback' => array( $this, 'permissions' ) ) );
+		register_rest_route( self::NAMESPACE, '/content/analyze', array( 'methods' => WP_REST_Server::CREATABLE, 'callback' => array( $this, 'content_analyze' ), 'permission_callback' => array( $this, 'permissions' ), 'args' => array( 'content' => array( 'required' => true, 'type' => 'string' ), 'title' => array( 'required' => false, 'type' => 'string', 'default' => '' ) ) ) );
 	}
 
 	public function permissions(): bool {
@@ -73,5 +75,11 @@ class WP_AI_OS_API_Controller {
 			return new WP_REST_Response( array( 'success' => false, 'code' => $result->get_error_code(), 'message' => $result->get_error_message() ), 400 );
 		}
 		return new WP_REST_Response( array( 'success' => true, 'content' => $result['content'] ), 200 );
+	}
+
+	public function content_analyze( WP_REST_Request $request ): WP_REST_Response {
+		$content = (string) $request->get_param( 'content' );
+		$title   = (string) $request->get_param( 'title' );
+		return new WP_REST_Response( ( new WP_AI_OS_Content_Analyzer() )->analyze( $content, $title ), 200 );
 	}
 }
