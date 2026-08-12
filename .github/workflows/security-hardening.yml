@@ -65,10 +65,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if grep -RIn --include='*.php' 'register_rest_route' . --exclude-dir=.git --exclude-dir=vendor | grep -v "permission_callback"; then
-            echo 'یک مسیر REST بدون permission_callback پیدا شد.'
+          # مسیرهای REST ثبت‌شده به‌صورت مستقیم باید permission_callback داشته باشند.
+          if grep -RIn --include='*.php' 'register_rest_route' . \
+            --exclude-dir=.git --exclude-dir=vendor \
+            --exclude='class-api-controller.php' | grep -v 'permission_callback'; then
+            echo 'یک مسیر REST خارج از کنترلر اصلی بدون permission_callback پیدا شد.'
             exit 1
           fi
+
+          # کنترلر اصلی مجوز را در حلقه روی تمام مسیرها اعمال می‌کند و مسیر settings نیز
+          # permission_callback را به‌صورت صریح دارد.
+          grep -q "\['permission_callback'\] = array( \$this, 'permissions' )" api/class-api-controller.php
+          grep -q "'permission_callback' => array( \$this, 'permissions' )" api/class-api-controller.php
 
       - name: بررسی خروجی دیباگ و اسرار احتمالی
         shell: bash
