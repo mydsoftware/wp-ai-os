@@ -1,0 +1,10 @@
+{
+  "name": "wp-ai-os",
+  "private": true,
+  "scripts": {
+    "wp-env": "wp-env"
+  },
+  "devDependencies": {
+    "@wordpress/env": "^10.15.0"
+  }
+}
