@@ -3,7 +3,7 @@
  * Plugin Name: WP AI OS
  * Plugin URI: https://example.com/
  * Description: AI Readiness, GEO, AEO, RAG, Agents, WooCommerce and AI infrastructure for WordPress.
- * Version: 0.9.0
+ * Version: 1.0.0
  * Author: WP AI OS
  * Text Domain: wp-ai-os
  * Domain Path: /languages
@@ -15,7 +15,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'WP_AI_OS_VERSION', '0.9.0' );
+define( 'WP_AI_OS_VERSION', '1.0.0' );
 define( 'WP_AI_OS_FILE', __FILE__ );
 define( 'WP_AI_OS_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WP_AI_OS_URL', plugin_dir_url( __FILE__ ) );
