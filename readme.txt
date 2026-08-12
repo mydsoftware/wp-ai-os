@@ -3,48 +3,57 @@ Contributors: wp-ai-os
 Tags: artificial intelligence, ai, seo, geo, aeo, schema, rag, woocommerce
 Requires at least: 6.4
 Requires PHP: 8.0
-Stable tag: 0.9.0
+Stable tag: 1.0.0
 License: GPLv2 or later
 
-AI Readiness, GEO, AEO, RAG and automation infrastructure for WordPress.
+AI Readiness, GEO, AEO, RAG, Agents and WooCommerce AI infrastructure for WordPress.
 
 == Description ==
-WP AI OS helps WordPress sites become easier for search engines, answer engines and AI systems to understand and use.
+WP AI OS is a WordPress AI optimization platform. It combines technical AI readiness, structured data, answer-focused content analysis, provider-backed AI assistance, a local knowledge base, grounded RAG and safe automation in one plugin.
 
-Core features:
-* AI Readiness scanning
-* robots.txt and sitemap checks
-* llms.txt publishing
-* Schema.org JSON-LD
-* AEO content analysis
-* AI content assistance
-* local WordPress knowledge base
-* grounded RAG answers with sources
-* safe allowlisted AI agents
-* optional scheduled automation
-* WooCommerce Product schema
-* provider-independent AI configuration
-* license management foundation
+== Features ==
+* AI Readiness scoring and recommendations
+* HTTPS, robots.txt, XML sitemap, llms.txt, Schema, REST API, content and AI crawler checks
+* Automatic llms.txt publishing
+* Organization, WebSite, Article and WebPage JSON-LD
+* WooCommerce Product JSON-LD when WooCommerce is active
+* AEO content analyzer
+* AI content assistant for optimization, FAQs, metadata and outlines
+* Local post/page knowledge base
+* Grounded RAG answers with source URLs
+* Allowlisted AI agent tasks
+* Optional scheduled readiness/indexing automation
+* OpenAI-compatible provider architecture
+* Admin settings and API-key masking
+* License-management foundation
+* RTL/translation-ready WordPress architecture
 
-The base readiness features work without an external AI API.
+The base readiness functionality does not require an external AI provider.
 
 == Installation ==
 1. Upload the wp-ai-os folder to /wp-content/plugins/.
 2. Activate WP AI OS from Plugins.
 3. Open WP AI OS in the WordPress admin.
 4. Run the first AI Readiness scan.
-5. Configure an AI provider only when AI generation features are required.
+5. Configure an AI provider when AI generation or RAG features are required.
 
 == Security ==
-Privileged REST endpoints require WordPress authentication and the manage_options capability. API keys are never returned by the REST settings endpoint.
+Privileged REST endpoints require WordPress authentication and the manage_options capability. API keys are never returned by the REST settings endpoint. AI agents are allowlisted and scheduled automation is disabled unless explicitly enabled through the provided filter.
 
 == Privacy ==
-AI requests are sent only when an administrator explicitly invokes an AI-powered feature and has configured an external provider. The readiness scanner itself does not require an external AI provider.
+The readiness scanner works locally. AI-powered features send content to the configured external provider only when invoked. Site owners should review the privacy policy of their selected provider.
 
 == Changelog ==
+= 1.0.0 =
+* Production-oriented commercial release candidate.
+* Polished admin dashboard.
+* Marketplace packaging workflow.
+* Complete feature stack from readiness through RAG and agents.
+* WooCommerce structured data.
+* License foundation and uninstall cleanup.
+
 = 0.9.0 =
 * Commercial foundation and license management.
-* Marketplace-ready readme and uninstall cleanup.
 
 = 0.8.0 =
 * WooCommerce Product structured data.
