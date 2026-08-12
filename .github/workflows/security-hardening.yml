@@ -65,16 +65,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # مسیرهای REST ثبت‌شده به‌صورت مستقیم باید permission_callback داشته باشند.
-          if grep -RIn --include='*.php' 'register_rest_route' . \
+          # خارج از کنترلر اصلی نباید مسیر REST جدیدی بدون بررسی مستقل اضافه شود.
+          other_routes=$(grep -RIn --include='*.php' 'register_rest_route' . \
             --exclude-dir=.git --exclude-dir=vendor \
-            --exclude='class-api-controller.php' | grep -v 'permission_callback'; then
-            echo 'یک مسیر REST خارج از کنترلر اصلی بدون permission_callback پیدا شد.'
+            --exclude='class-api-controller.php' || true)
+          if [ -n "$other_routes" ]; then
+            echo 'مسیر REST خارج از کنترلر اصلی پیدا شد و باید به‌صورت مستقل بررسی شود:'
+            echo "$other_routes"
             exit 1
           fi
 
-          # کنترلر اصلی مجوز را در حلقه روی تمام مسیرها اعمال می‌کند و مسیر settings نیز
-          # permission_callback را به‌صورت صریح دارد.
+          # در کنترلر اصلی تمام مسیرها مجوز مدیریت تنظیمات را دریافت می‌کنند.
           grep -q "\['permission_callback'\] = array( \$this, 'permissions' )" api/class-api-controller.php
           grep -q "'permission_callback' => array( \$this, 'permissions' )" api/class-api-controller.php
 
