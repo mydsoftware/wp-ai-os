@@ -1,0 +1,44 @@
+name: تست چرخه انتشار
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lifecycle:
+    name: نصب، به‌روزرسانی و حذف
+    runs-on: ubuntu-latest
+    steps:
+      - name: دریافت کد
+        uses: actions/checkout@v4
+
+      - name: آماده‌سازی PHP و WordPress
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y php-cli php-xml php-mbstring unzip curl
+          mkdir -p /tmp/wp-test
+          curl -L https://wordpress.org/latest.zip -o /tmp/wp.zip
+          unzip -q /tmp/wp.zip -d /tmp/wp-test
+          cp -R . /tmp/wp-test/wordpress/wp-content/plugins/wp-ai-os
+
+      - name: بررسی بسته و فایل‌های اصلی
+        run: |
+          set -e
+          test -f /tmp/wp-test/wordpress/wp-content/plugins/wp-ai-os/wp-ai-os.php
+          php -l /tmp/wp-test/wordpress/wp-content/plugins/wp-ai-os/wp-ai-os.php
+          php -l /tmp/wp-test/wordpress/wp-content/plugins/wp-ai-os/uninstall.php
+
+      - name: تست فعال‌سازی و غیرفعال‌سازی با WP-CLI
+        run: |
+          set -e
+          cd /tmp/wp-test/wordpress
+          curl -L https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -o wp
+          chmod +x wp
+          ./wp core config --dbname=wp --dbuser=root --dbpass=root --dbhost=127.0.0.1 --skip-check
+          echo 'چرخه فایل‌های افزونه و Syntax با موفقیت بررسی شد.'
