@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: WP AI OS
- * Plugin URI: https://example.com/
+ * Plugin URI: https://github.com/mydsoftware/wp-ai-os
  * Description: AI Readiness, GEO, AEO, RAG, Agents, WooCommerce and AI infrastructure for WordPress.
  * Version: 1.0.0
  * Author: WP AI OS
