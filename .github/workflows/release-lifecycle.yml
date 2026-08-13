@@ -12,33 +12,77 @@ permissions:
 
 jobs:
   lifecycle:
-    name: نصب، به‌روزرسانی و حذف
+    name: نصب، فعال‌سازی، به‌روزرسانی و حذف
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: wp
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
     steps:
       - name: دریافت کد
         uses: actions/checkout@v4
 
-      - name: آماده‌سازی PHP و WordPress
+      - name: نصب ابزارها
         run: |
+          set -euo pipefail
           sudo apt-get update
-          sudo apt-get install -y php-cli php-xml php-mbstring unzip curl
-          mkdir -p /tmp/wp-test
-          curl -L https://wordpress.org/latest.zip -o /tmp/wp.zip
-          unzip -q /tmp/wp.zip -d /tmp/wp-test
-          cp -R . /tmp/wp-test/wordpress/wp-content/plugins/wp-ai-os
-
-      - name: بررسی بسته و فایل‌های اصلی
-        run: |
-          set -e
-          test -f /tmp/wp-test/wordpress/wp-content/plugins/wp-ai-os/wp-ai-os.php
-          php -l /tmp/wp-test/wordpress/wp-content/plugins/wp-ai-os/wp-ai-os.php
-          php -l /tmp/wp-test/wordpress/wp-content/plugins/wp-ai-os/uninstall.php
-
-      - name: تست فعال‌سازی و غیرفعال‌سازی با WP-CLI
-        run: |
-          set -e
-          cd /tmp/wp-test/wordpress
+          sudo apt-get install -y php-cli php-mysql php-xml php-mbstring unzip curl
           curl -L https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -o wp
           chmod +x wp
-          ./wp core config --dbname=wp --dbuser=root --dbpass=root --dbhost=127.0.0.1 --skip-check
-          echo 'چرخه فایل‌های افزونه و Syntax با موفقیت بررسی شد.'
+          sudo mv wp /usr/local/bin/wp
+
+      - name: نصب WordPress
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/wp-test
+          cd /tmp/wp-test
+          curl -L https://wordpress.org/latest.zip -o wp.zip
+          unzip -q wp.zip
+          cd wordpress
+          wp core config --dbname=wp --dbuser=root --dbpass=root --dbhost=127.0.0.1 --skip-check
+          wp core install --url=http://localhost --title='تست WP AI OS' --admin_user=admin --admin_password='password123!' --admin_email=test@example.com --skip-email
+          mkdir -p wp-content/plugins/wp-ai-os
+          rsync -a "$GITHUB_WORKSPACE/" wp-content/plugins/wp-ai-os/ --exclude=.git
+
+      - name: نصب و فعال‌سازی
+        working-directory: /tmp/wp-test/wordpress
+        run: |
+          set -euo pipefail
+          wp plugin install --activate wp-ai-os
+          wp plugin is-active wp-ai-os
+
+      - name: بررسی API و وضعیت افزونه
+        working-directory: /tmp/wp-test/wordpress
+        run: |
+          set -euo pipefail
+          wp plugin status wp-ai-os
+          wp option get active_plugins | grep -q 'wp-ai-os'
+
+      - name: تست غیرفعال‌سازی و فعال‌سازی مجدد
+        working-directory: /tmp/wp-test/wordpress
+        run: |
+          set -euo pipefail
+          wp plugin deactivate wp-ai-os
+          ! wp plugin is-active wp-ai-os
+          wp plugin activate wp-ai-os
+          wp plugin is-active wp-ai-os
+
+      - name: تست حذف
+        working-directory: /tmp/wp-test/wordpress
+        run: |
+          set -euo pipefail
+          wp plugin deactivate wp-ai-os
+          wp plugin delete wp-ai-os
+          test ! -d wp-content/plugins/wp-ai-os
+
+      - name: نتیجه نهایی
+        run: echo 'چرخه نصب، فعال‌سازی، غیرفعال‌سازی و حذف با موفقیت تست شد.'
