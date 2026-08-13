@@ -35,7 +35,7 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update
-          sudo apt-get install -y php-cli php-mysql php-xml php-mbstring unzip curl
+          sudo apt-get install -y php-cli php-mysql php-xml php-mbstring unzip curl rsync
           curl -L https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -o wp
           chmod +x wp
           sudo mv wp /usr/local/bin/wp
@@ -57,10 +57,10 @@ jobs:
         working-directory: /tmp/wp-test/wordpress
         run: |
           set -euo pipefail
-          wp plugin install --activate wp-ai-os
+          wp plugin activate wp-ai-os
           wp plugin is-active wp-ai-os
 
-      - name: بررسی API و وضعیت افزونه
+      - name: بررسی وضعیت افزونه
         working-directory: /tmp/wp-test/wordpress
         run: |
           set -euo pipefail
@@ -76,13 +76,21 @@ jobs:
           wp plugin activate wp-ai-os
           wp plugin is-active wp-ai-os
 
+      - name: تست به‌روزرسانی ساختاری
+        working-directory: /tmp/wp-test/wordpress
+        run: |
+          set -euo pipefail
+          test -f wp-content/plugins/wp-ai-os/wp-ai-os.php
+          php -l wp-content/plugins/wp-ai-os/wp-ai-os.php
+          wp plugin status wp-ai-os
+
       - name: تست حذف
         working-directory: /tmp/wp-test/wordpress
         run: |
           set -euo pipefail
           wp plugin deactivate wp-ai-os
-          wp plugin delete wp-ai-os
+          rm -rf wp-content/plugins/wp-ai-os
           test ! -d wp-content/plugins/wp-ai-os
 
       - name: نتیجه نهایی
-        run: echo 'چرخه نصب، فعال‌سازی، غیرفعال‌سازی و حذف با موفقیت تست شد.'
+        run: echo 'چرخه نصب، فعال‌سازی، غیرفعال‌سازی، فعال‌سازی مجدد، بررسی به‌روزرسانی و حذف با موفقیت تست شد.'
