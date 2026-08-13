@@ -13,10 +13,10 @@ jobs:
   package:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: دریافت کد
         uses: actions/checkout@v4
 
-      - name: Build package
+      - name: ساخت بسته پاک انتشار
         shell: bash
         run: |
           set -euo pipefail
@@ -27,11 +27,33 @@ jobs:
             --exclude='tests' \
             --exclude='docs' \
             --exclude='sprint*.sh' \
-            --exclude='dist'
+            --exclude='dist' \
+            --exclude='phpunit.xml' \
+            --exclude='phpunit.xml.dist' \
+            --exclude='.wp-env.json' \
+            --exclude='package.json' \
+            --exclude='package-lock.json' \
+            --exclude='pnpm-lock.yaml' \
+            --exclude='yarn.lock' \
+            --exclude='.gitignore' \
+            --exclude='.gitattributes' \
+            --exclude='.editorconfig' \
+            --exclude='composer.json' \
+            --exclude='composer.lock'
           rm -f dist/wp-ai-os/.env.example
+          test -f dist/wp-ai-os/wp-ai-os.php
+          test -f dist/wp-ai-os/readme.txt
+          test -f dist/wp-ai-os/LICENSE
           (cd dist && zip -qr wp-ai-os.zip wp-ai-os)
 
-      - name: Upload package artifact
+      - name: بررسی بسته نهایی
+        shell: bash
+        run: |
+          set -euo pipefail
+          unzip -l dist/wp-ai-os.zip
+          ! unzip -l dist/wp-ai-os.zip | grep -E '(^|/)(\.git|\.github|tests|docs|phpunit\.xml|phpunit\.xml\.dist|\.wp-env\.json|package\.json|package-lock\.json|pnpm-lock\.yaml|yarn\.lock|\.gitignore|\.gitattributes|\.editorconfig|composer\.json|composer\.lock)(/|$)'
+
+      - name: بارگذاری بسته انتشار
         uses: actions/upload-artifact@v4
         with:
           name: wp-ai-os-${{ github.ref_name }}
