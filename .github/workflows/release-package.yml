@@ -20,6 +20,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          rm -rf dist
           mkdir -p dist/wp-ai-os
           rsync -a ./ dist/wp-ai-os/ \
             --exclude='.git' \
@@ -52,9 +53,22 @@ jobs:
           set -euo pipefail
           unzip -l dist/wp-ai-os.zip
           ! unzip -l dist/wp-ai-os.zip | grep -E '(^|/)(\.git|\.github|tests|docs|phpunit\.xml|phpunit\.xml\.dist|\.wp-env\.json|package\.json|package-lock\.json|pnpm-lock\.yaml|yarn\.lock|\.gitignore|\.gitattributes|\.editorconfig|composer\.json|composer\.lock)(/|$)'
+          rm -rf /tmp/wp-ai-os-audit
+          mkdir -p /tmp/wp-ai-os-audit
+          unzip -q dist/wp-ai-os.zip -d /tmp/wp-ai-os-audit
+          test -f /tmp/wp-ai-os-audit/wp-ai-os/wp-ai-os.php
+          test -f /tmp/wp-ai-os-audit/wp-ai-os/readme.txt
+          test -f /tmp/wp-ai-os-audit/wp-ai-os/LICENSE
+          ! find /tmp/wp-ai-os-audit/wp-ai-os -type f -name '*.zip' -print -quit | grep -q .
+
+      - name: آماده‌سازی Artifact مستقیم افزونه
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp dist/wp-ai-os.zip wp-ai-os.zip
 
       - name: بارگذاری بسته انتشار
         uses: actions/upload-artifact@v4
         with:
           name: wp-ai-os-${{ github.ref_name }}
-          path: dist/wp-ai-os.zip
+          path: wp-ai-os.zip
