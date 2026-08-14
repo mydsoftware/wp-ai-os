@@ -7,7 +7,7 @@ on:
       - 'v*'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   package:
@@ -66,9 +66,25 @@ jobs:
         run: |
           set -euo pipefail
           cp dist/wp-ai-os.zip wp-ai-os.zip
+          sha256sum wp-ai-os.zip
 
-      - name: بارگذاری بسته انتشار
+      - name: بارگذاری بسته برای نگهداری CI
         uses: actions/upload-artifact@v4
         with:
           name: wp-ai-os-${{ github.ref_name }}
           path: wp-ai-os.zip
+
+      - name: انتشار فایل مستقیم در GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" wp-ai-os.zip --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" wp-ai-os.zip \
+              --title "WP AI OS $GITHUB_REF_NAME" \
+              --generate-notes
+          fi
